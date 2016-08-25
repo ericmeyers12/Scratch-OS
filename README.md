@@ -17,11 +17,24 @@ GRUB../../grub/configure --disable-werror TARGET_CC=i686-elf-gcc TARGET_OBJCONV=
 
 TO BUILD:
 
-i686-elf-as src/boot.s -o build/boot.o
-i686-elf-gcc -c src/kernel.c -o build/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
-i686-elf-gcc -T src/config/linker.ld -o build/myos.bin -ffreestanding -O2 -nostdlib build/boot.o build/kernel.o -lgcc
-cp build/myos.bin isodir/boot/myos.bin
-grub-mkrescue -o myos.iso isodir
+qemu-system-i386w.exe -hda <mp3 directory>\mp3.img -m 256 -gdb tcp:127.0.0.1:1234 -S -name
 
-TO RUN: 
-qemu-system-i386 -cdrom myos.iso
+i686-elf-as src/boot.s -o build/boot.o
+i686-elf-gcc -g -c src/kernel.c -o build/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+i686-elf-gcc -T src/config/linker.ld -g -o build/myos.bin -ffreestanding -O2 -nostdlib build/boot.o build/kernel.o -lgcc
+cp build/myos.bin isodir/boot/myos.bin
+grub-mkrescue -g -o myos.iso isodir
+
+TO RUN:
+qemu-system-i386 -cdrom myos.iso-m 256 -gdb tcp:127.0.0.1:1234 -S -name level
+
+test machine: qemu-system-i386 -cdrom myos.iso -m 512 -name test -gdb tcp:127.0.0.1:1234 -S -kernel
+devel: qemu-system-i386 -cdrom myos.iso -m 512 -name devel
+nodebug: qemu-system-i386 -cdrom myos.iso -m 512 -name test -kernel
+
+GDB:
+1. Run: ”$ qemu-system-i386 -s -S myos.iso” on a terminal
+2. In a separate terminal open gdb and target port 1234 on localhost.
+	- “$ target remote localhost:1234”
+3. Continue or proceed to start debugger.
+
