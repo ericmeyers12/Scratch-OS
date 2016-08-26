@@ -102,5 +102,5 @@ void kernel_main() {
          * yet, '\n' will produce some VGA specific character instead.
          * This is normal.
          */
-	terminal_writestring("Hello, this is a motherfucking test!\n");
+	terminal_writestring("Hello, this is a motherfudfasfsacking test!\njfhkdlsajfkl;djk;");
 }

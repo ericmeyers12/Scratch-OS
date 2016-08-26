@@ -24,13 +24,20 @@ OBJDIR=obj
 BINDIR=bin
 
 # This generates the list of source files
-SRC =  $(wildcard $(SRCDIR)/*.s)
-SRC += $(wildcard $(SRCDIR)/*.c)
+AS-SRC =  $(wildcard $(SRCDIR)/*.s)
+C-SRC = $(wildcard $(SRCDIR)/*.c)
+ALL-SRC = $(C-SRC)
+ALL-SRC += $(AS-SRC)
+
+
+C-OBJS := ${C-SRC:.c=.o} 
+AS-OBJS := ${AS-SRC:.s=.o}
+
 
 all:
-	$(AS) $(SRCDIR)/boot.s -o $(OBJDIR)/boot.o
-	$(CC) -g -c $(SRCDIR)/kernel.c -o $(OBJDIR)/kernel.o $(CFLAGS)
-	$(CC) -T $(SRCDIR)/config/linker.ld -g -o $(BINDIR)/myos.bin $(LDFLAGS) $(OBJDIR)/boot.o  $(OBJDIR)/kernel.o -lgcc
+	$(AS) $(AS-SRC) -o $(AS-OBJS)
+	$(CC) -c $(C-SRC) -o $(C-OBJS) $(CFLAGS)
+	$(CC) -T $(SRCDIR)/config/linker.ld -g -o $(BINDIR)/myos.bin $(LDFLAGS) $(AS-OBJS) $(C-OBJS) -lgcc
 	cp $(BINDIR)/myos.bin isodir/boot/myos.bin
 	grub-mkrescue -o myos.iso isodir
 
@@ -39,8 +46,8 @@ all:
 # DEPENDENCIES - "make dep" compiles all dependencies into single makefile.dep file
 dep: Makefile.dep
 
-Makefile.dep: $(SRC)
-	$(CC) -MM $(CFLAGS) $(SRC) > $@
+Makefile.dep: $(ALL-SRC)
+	$(CC) -MM $(CFLAGS) $(ALL-SRC) > $@
 	@echo "Dependencies file created."
 
 
