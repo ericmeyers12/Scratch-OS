@@ -9,6 +9,8 @@
 *.iso
 *.dep
 *.bin
+*.sym
+*.elf
 
 # Packages #
 ############
