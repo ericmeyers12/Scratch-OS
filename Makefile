@@ -38,21 +38,22 @@ OBJS := ${C-SRC:.c=.o} ${AS-SRC:.s=.o}
 all: $(OBJS)
 	$(CC) -T src/config/linker.ld -o $(BINDIR)/kernel.elf $(LDFLAGS) $(OBJS)
 	cp $(BINDIR)/kernel.elf isodir/boot/kernel.elf
+	cp $(SRCDIR)/*.o $(SRCDIR)/$(OBJDIR)
+	rm -f $(SRCDIR)/*.o
 	grub-mkrescue -o scratch-os.iso $(ISODIR)
 	@echo "ISO created. Boot with QEMU."
 
 
-boot.o: src/boot.s
+$(OBJDIR)/boot.o: src/boot.s
 	$(AS) -g src/boot.s $(ASFLAGS)
 
-kernel.o: src/kernel.c src/test.c
+$(OBJDIR)/kernel.o: src/kernel.c src/test.c
 	$(CC) -g -c src/kernel.c $(CFLAGS)
 
-test.o: src/test.c
+$(OBJDIR)/test.o: src/test.c
 	$(CC) -g -c src/test.c $(CFLAGS)
 
 
-	
 gdb:
 	i686-elf-objcopy --only-keep-debug $(BINDIR)/kernel.elf kernel.sym
 	i686-elf-objcopy --strip-debug $(BINDIR)/kernel.elf
@@ -68,7 +69,7 @@ gdb-test:
 dep: Makefile.dep
 
 Makefile.dep: $(SRC)
-	$(CC) -MM $(CFLAGS) $(SRC) > $@
+	$(CC) -MM $(CFLAGS) $(SRCS) > $@
 	@echo "Dependencies file created."
 
 

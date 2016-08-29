@@ -49,6 +49,10 @@ _start:
 	# safeguards, no debugging mechanisms, only what the kernel provides
 	# itself. It has absolute and complete power over the
 	# machine.
+	cli 		# this is to make sure interrupts are off
+	jmp continue
+
+continue:
 
 	# To set up a stack, we set the esp register to point to the top of our
 	# stack (as it grows downwards on x86 systems). This is necessarily done
