@@ -1,7 +1,6 @@
 #include "types.h"
 #include "test.h"
-
-
+#include "x86_desc.h"
 
 /* Hardware text mode color constants. */
 enum vga_color {

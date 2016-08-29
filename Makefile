@@ -43,14 +43,16 @@ all: $(OBJS)
 	grub-mkrescue -o scratch-os.iso $(ISODIR)
 	@echo "ISO created. Boot with QEMU."
 
+x86_desc.o: src/x86_desc.s src/boot.s
+	$(AS) -g src/x86_desc.s $(ASFLAGS)
 
-$(OBJDIR)/boot.o: src/boot.s
+boot.o: src/boot.s
 	$(AS) -g src/boot.s $(ASFLAGS)
 
-$(OBJDIR)/kernel.o: src/kernel.c src/test.c
+kernel.o: src/kernel.c src/test.c src/x86_desc.s
 	$(CC) -g -c src/kernel.c $(CFLAGS)
 
-$(OBJDIR)/test.o: src/test.c
+test.o: src/test.c
 	$(CC) -g -c src/test.c $(CFLAGS)
 
 
