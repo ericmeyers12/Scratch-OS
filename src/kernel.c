@@ -6,6 +6,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "test.h"
+
 
 
 /* Hardware text mode color constants. */
@@ -102,5 +104,9 @@ void kernel_main() {
          * yet, '\n' will produce some VGA specific character instead.
          * This is normal.
          */
-	terminal_writestring("Hello, this is a motherfudfasfsacking test!\njfhkdlsajfkl;djk;");
+	int test_int = test(1);
+	terminal_writestring("test");
+
+	terminal_writestring("Hello this is a test.");
+
 }
