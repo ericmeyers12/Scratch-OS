@@ -5,9 +5,9 @@
 
 
 # FLAGS - to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -g -std=gnu99 -O2 -Wall -Wextra -fno-builtin -fno-stack-protector  -nostdlib
+CFLAGS 	+= -g -std=gnu99 -O0 -Wall -Wextra -fno-builtin -fno-stack-protector  -nostdlib
 ASFLAGS += -g
-LDFLAGS += -g -O2 -nostdlib
+LDFLAGS += -g -O0 -nostdlib
 
 # COMPILERS - Using i686 cross-compiler
 CC=i686-elf-gcc
