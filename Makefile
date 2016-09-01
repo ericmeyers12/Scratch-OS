@@ -5,9 +5,9 @@
 
 
 # FLAGS - to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -std=gnu99 -ffreestanding -O2 -Wall -Wextra
-ASFLAGS +=
-LDFLAGS += -ffreestanding -O2 -nostdlib
+CFLAGS 	+= -g -std=gnu99 -O2 -Wall -Wextra -fno-builtin -fno-stack-protector  -nostdlib
+ASFLAGS += -g
+LDFLAGS += -g -O2 -nostdlib
 
 # COMPILERS - Using i686 cross-compiler
 CC=i686-elf-gcc
@@ -37,7 +37,7 @@ OBJS := ${C-OBJS} ${AS-OBJS}
 
 all: $(OBJS)
 	@echo "Starting Compilation..."
-	$(CC) -g -T src/config/linker.ld -o $(BINDIR)/kernel.elf $(LDFLAGS) $(OBJS) -lgcc
+	$(CC) -T src/config/linker.ld -o $(BINDIR)/kernel.elf $(LDFLAGS) $(OBJS)
 	@echo "Done Linking..."
 	cp $(BINDIR)/kernel.elf isodir/boot/kernel.elf
 	@echo "Cleaning Up..."
@@ -50,19 +50,19 @@ all: $(OBJS)
 
 
 boot.o: src/boot.S
-	$(AS) -g src/boot.S $(ASFLAGS)
+	$(AS) src/boot.S $(ASFLAGS)
 	@echo "Making boot.o ......."
 
 x86_desc.o: src/x86_desc.S
-	$(AS) -g src/x86_desc.S $(ASFLAGS)
+	$(AS) src/x86_desc.S $(ASFLAGS)
 	@echo "Making x86_desc.o ......."
 
 kernel.o: src/kernel.c src/test.c
-	$(CC) -g -c src/kernel.c $(CFLAGS)
+	$(CC) -c src/kernel.c $(CFLAGS)
 	@echo "Making kernel.o ......."
 
 test.o: src/test.c
-	$(CC) -g -c src/test.c $(CFLAGS)
+	$(CC) -c src/test.c $(CFLAGS)
 	@echo "Making test.o ......."
 
 gdb:

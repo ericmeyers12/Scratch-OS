@@ -2,6 +2,14 @@
 #include "test.h"
 #include "x86_desc.h"
 
+static const uint16_t VGA_WIDTH = 80;
+static const uint16_t VGA_HEIGHT = 25;
+
+uint16_t terminal_row;
+uint16_t terminal_column;
+uint16_t terminal_color;
+uint16_t* terminal_buffer;
+
 /* Hardware text mode color constants. */
 enum vga_color {
 	COLOR_BLACK = 0,
@@ -38,14 +46,6 @@ uint16_t strlen(const char* str) {
 		len++;
 	return len;
 }
-
-static const uint16_t VGA_WIDTH = 80;
-static const uint16_t VGA_HEIGHT = 25;
-
-uint16_t terminal_row;
-uint16_t terminal_column;
-uint16_t terminal_color;
-uint16_t* terminal_buffer;
 
 void terminal_initialize() {
 	terminal_row = 0;
@@ -85,9 +85,6 @@ void terminal_writestring(const char* data) {
 		terminal_putchar(data[i]);
 }
 
-#if defined(__cplusplus)
-extern "C" /* Use C linkage for kernel_main. */
-#endif
 void kernel_main() {
 	/* Initialize terminal interface */
 	terminal_initialize();
@@ -96,7 +93,8 @@ void kernel_main() {
          * yet, '\n' will produce some VGA specific character instead.
          * This is normal.
          */
-	int test_int = test(1);
+	volatile int test_int = test(1);
+
 	terminal_writestring("test");
 
 	terminal_writestring("Hello this is a test.");
