@@ -65,6 +65,10 @@ test.o: src/test.c
 	$(CC) -c src/test.c $(CFLAGS)
 	@echo "Making test.o ......."
 
+terminal.o: src/terminal.c
+	$(CC) -c src/terminal.c $(CFLAGS)
+	@echo "Making terminal.o"
+
 gdb:
 	i686-elf-objcopy --only-keep-debug $(BINDIR)/kernel.elf kernel.sym
 	i686-elf-objcopy --strip-debug $(BINDIR)/kernel.elf
