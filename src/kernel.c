@@ -9,9 +9,6 @@ void kernel_main() {
 	volatile int test_int = test(1);
 	
 	/* Testing printf*/
-	volatile int test = printf("%d\n", 1);
-
-	/* No newline support yet*/
-	terminal_writestring("Hello this is a test.");
+	volatile int test = printf("this is a test:%d\nhello\nERIC'S O.S.", 1);
 
 }
