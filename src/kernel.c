@@ -10,7 +10,7 @@ void kernel_main() {
          */
 	volatile int test_int = test(1);
 
-	terminal_writestring("test");
+	terminal_writestring("test1234");
 
 	terminal_writestring("Hello this is a test.");
 

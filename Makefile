@@ -36,43 +36,33 @@ OBJS := ${C-OBJS} ${AS-OBJS}
 # i686-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o -lgcc
 
 all: $(OBJS)
-	@echo "Starting Compilation..."
+	@echo "\nLinking...\n"
 	$(CC) -T src/config/linker.ld -o $(BINDIR)/kernel.elf $(LDFLAGS) $(OBJS)
-	@echo "Done Linking..."
+	@echo "\nDone Linking...\n"
 	cp $(BINDIR)/kernel.elf isodir/boot/kernel.elf
 	@echo "Cleaning Up..."
 	cp $(SRCDIR)/*.o $(SRCDIR)/$(OBJDIR)
 	rm -f $(SRCDIR)/*.o
-	@echo "Creating ISO..."
+	@echo "\nCreating ISO...\n"
 	grub-mkrescue -o scratch-os.iso $(ISODIR)
-	@echo "ISO created. Boot with QEMU."
-
-
-
-boot.o: src/boot.S
-	$(AS) src/boot.S $(ASFLAGS)
-	@echo "Making boot.o ......."
-
-x86_desc.o: src/x86_desc.S
-	$(AS) src/x86_desc.S $(ASFLAGS)
-	@echo "Making x86_desc.o ......."
-
-kernel.o: src/kernel.c src/test.c
-	$(CC) -c src/kernel.c $(CFLAGS)
-	@echo "Making kernel.o ......."
-
-test.o: src/test.c
-	$(CC) -c src/test.c $(CFLAGS)
-	@echo "Making test.o ......."
-
-terminal.o: src/terminal.c
-	$(CC) -c src/terminal.c $(CFLAGS)
-	@echo "Making terminal.o"
-
-gdb:
+	@echo "\nISO created. Creating GDB files...\n"
+	
 	i686-elf-objcopy --only-keep-debug $(BINDIR)/kernel.elf kernel.sym
 	i686-elf-objcopy --strip-debug $(BINDIR)/kernel.elf
-	@echo "Debugging files created."
+	
+	@echo "\nDebugging files created.\n"
+	
+	@echo "Done. Boot with QEMU.\n"
+
+
+%.o : %.s
+	$(AS) $(AS-SRC) $(ASFLAGS)
+	@echo "\nCompiling assembly files...\n"
+
+%.o : %.c
+	$(CC) -c $*.c -o $*.o $(CFLAGS)
+	@echo "\nCompiling C files...\n"
+
 
 # DEPENDENCIES - "make dep" compiles all dependencies into single makefile.dep file
 dep: Makefile.dep
