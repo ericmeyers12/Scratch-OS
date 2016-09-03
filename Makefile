@@ -46,22 +46,23 @@ all: $(OBJS)
 	@echo "\nCreating ISO...\n"
 	grub-mkrescue -o scratch-os.iso $(ISODIR)
 	@echo "\nISO created. Creating GDB files...\n"
-	
 	i686-elf-objcopy --only-keep-debug $(BINDIR)/kernel.elf kernel.sym
 	i686-elf-objcopy --strip-debug $(BINDIR)/kernel.elf
-	
 	@echo "\nDebugging files created.\n"
-	
 	@echo "Done. Boot with QEMU.\n"
 
 
 %.o : %.s
-	$(AS) $(AS-SRC) $(ASFLAGS)
-	@echo "\nCompiling assembly files...\n"
+	$(AS) $*.S -o $*.o $(ASFLAGS)
+	@echo ""
+	@echo Compiling $@ from <$...
+	@echo ""
 
 %.o : %.c
 	$(CC) -c $*.c -o $*.o $(CFLAGS)
-	@echo "\nCompiling C files...\n"
+	@echo ""
+	@echo Compiling $@ from $<...
+	@echo ""
 
 
 # DEPENDENCIES - "make dep" compiles all dependencies into single makefile.dep file
@@ -75,7 +76,7 @@ Makefile.dep: $(SRC)
 # CLEAN - "make clean" - removes all object files and restores settings on make
 .PHONY: clean
 clean:
-	rm -f $(OBJDIR)/*.o Makefile.dep scratch-os
+	rm -f $(SRCDIR)/$(OBJDIR)/*.o Makefile.dep scratch-os.iso kernel.sym
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)
