@@ -40,12 +40,7 @@ uint16_t make_vgaentry(char c, uint8_t color) {
 	return c16 | color16 << 8;
 }
 
-uint16_t strlen(const char* str) {
-	uint16_t len = 0;
-	while (str[len])
-		len++;
-	return len;
-}
+
 
 void terminal_initialize() {
 	terminal_row = 0;

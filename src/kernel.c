@@ -1,19 +1,17 @@
 #include "terminal.h"
+#include "lib.h"
 
 void kernel_main() {
 	/* Initialize terminal interface */
 	terminal_initialize();
 
-	/* Since there is no support for newlines in terminal_putchar
-         * yet, '\n' will produce some VGA specific character instead.
-         * This is normal.
-         */
+	/* Test Function */
 	volatile int test_int = test(1);
-
 	
-	
-	terminal_writestring("test fuck you2323");
+	/* Testing printf*/
+	volatile int test = printf("%d\n", 1);
 
+	/* No newline support yet*/
 	terminal_writestring("Hello this is a test.");
 
 }

@@ -10,6 +10,7 @@
 
 #include "types.h"
 #include "test.h"
+#include "lib.h"
 #include "x86_desc.h"
 
 /* Hardware text mode color constants. */
@@ -36,8 +37,6 @@ enum vga_color {
 uint16_t make_color(enum vga_color fg, enum vga_color bg);
 
 uint16_t make_vgaentry(char c, uint8_t color);
-
-uint16_t strlen(const char* str);
 
 void terminal_initialize();
 
