@@ -3,14 +3,115 @@
  */
 
 #include "lib.h"
-#define VIDEO 0xB8000
-#define NUM_COLS 80
-#define NUM_ROWS 25
-#define ATTRIB 0x7
+#include "i8259.h"
+#include "terminal.h"
+#include "scheduling.h"
 
+
+/* Global Variables: Updating information about */
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+
+/*
+*	Function: get_screen_x()
+*	Description: Gets the current x coor
+*	input: none
+*	output: x coordinate
+*	effects: none
+*/
+int get_screen_x(void){
+	return screen_x;
+}
+
+/*
+*	Function: set_screen_x()
+*	Description: Sets the current x coor
+*	input: x coordinate
+*	output: none
+*	effects: changes x coord
+*/
+void set_screen_x(uint32_t new_x) {
+	set_screen_pos(new_x, screen_y);
+}
+
+/*
+*	Function: get_screen_y()
+*	Description: Gets the current y coor
+*	input: none
+*	output: y coordinate
+*	effects: none
+*/
+int get_screen_y(void){
+	return screen_y;
+}
+
+/*
+*	Function: set_screen_y()
+*	Description: Sets the current y coor
+*	input: y coordinate
+*	output: none
+*	effects: changes y coord
+*/
+void set_screen_y(uint32_t new_y) {
+	set_screen_pos(screen_x, new_y);
+}
+
+/*
+* void set_screen_pos(uint32_t x, uint32_t y);
+*   Inputs: x and y coordinates to start writing text to the screen
+*   Return Value: none
+*	Function: moves the location text is drawn on the screen
+*/
+void
+set_screen_pos(uint32_t x, uint32_t y) {
+	if (x < NUM_COLS)
+		screen_x = x;
+	else {
+		enter();
+		set_cursor_pos();
+		return;
+	}
+
+	if (y < NUM_ROWS)
+		screen_y = y;
+	else {
+		scroll_up();
+		screen_y = NUM_ROWS - 1;
+	}
+	set_cursor_pos();
+}
+
+/*
+* void set_screen_pos_term_exec(uint32_t x, uint32_t y);
+*   Special print function to write to the currently executing terminal's video buffer
+*/
+void
+set_screen_pos_term_exec(uint32_t x, uint32_t y) {
+	if (x < NUM_COLS)
+		terms[current_term_executing].x_pos = x;
+	else {
+		enter_term_exec();
+		return;
+	}
+
+	if (y < NUM_ROWS)
+		terms[current_term_executing].y_pos = y;
+	else {
+		scroll_up_term_exec();
+		terms[current_term_executing].y_pos = NUM_ROWS - 1;
+	}
+}
+
+/*
+* void set_cursor_pos(void);
+*   Special print function to write to the currently executing terminal's video buffer
+*/
+void set_cursor_pos() {
+		uint16_t position = NUM_COLS*screen_y + screen_x;
+		outw(0x000E | (position & 0xFF00), 0x03D4);
+		outw(0x000F | ((position << 8) & 0xFF00), 0x03D4);
+}
 
 /*
 * void clear(void);
@@ -18,15 +119,119 @@ static char* video_mem = (char *)VIDEO;
 *   Return Value: none
 *	Function: Clears video memory
 */
-
 void
 clear(void)
 {
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        if (current_term_id == TERMINAL_ONE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM1;
+        if (current_term_id == TERMINAL_TWO)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM2;
+        if (current_term_id == TERMINAL_THREE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM3;
     }
+}
+
+/*
+* void enter(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Moves to the next line on the screen
+*/
+void enter(void) {
+	set_screen_pos(ROW_START, screen_y+1);
+}
+
+/*
+* void enter(void);
+*   Special print function to write to the currently executing terminal's video buffer
+*/
+void enter_term_exec(void) {
+	set_screen_pos_term_exec(ROW_START, terms[current_term_executing].y_pos+1);
+}
+
+/*
+* void backspace(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Removes a character from the screen
+*/
+void backspace(void) {
+
+	if (screen_x == ROW_START) {
+		set_screen_pos(NUM_COLS-1, screen_y-1);
+	}
+	else {
+		set_screen_x(screen_x-1);
+	}
+
+	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
+    if (current_term_id == TERMINAL_ONE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM1;
+        if (current_term_id == TERMINAL_TWO)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM2;
+        if (current_term_id == TERMINAL_THREE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM3;
+}
+
+/*
+* void scroll_up(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Removes a character from the screen
+*/
+void 
+scroll_up() {
+	int32_t x;
+	int32_t y;
+	int32_t old_line;
+	int32_t new_line;
+
+	// Move each row in the video memory up by 1
+	for (y = 0; y < NUM_ROWS-1; y++) {
+		for (x = 0; x < NUM_COLS; x++) {
+			old_line = NUM_COLS*(y+1) + x;
+			new_line = NUM_COLS*y + x;
+			*(uint8_t *)(video_mem + (new_line << 1)) = *(uint8_t *)(video_mem + (old_line << 1));
+		}
+	}
+
+	// Clear the bottom line
+	for (x = 0; x < NUM_COLS; x++) {
+		new_line = NUM_COLS*(NUM_ROWS-1) + x;
+		*(uint8_t *)(video_mem + (new_line << 1)) = ' ';
+	}
+	set_screen_x(ROW_START);
+}
+
+/*
+* void scroll_up_term_exec(void);
+*   Special print function to write to the currently executing terminal's video buffer
+*/
+void
+scroll_up_term_exec() {
+	int32_t x;
+	int32_t y;
+	int32_t old_line;
+	int32_t new_line;
+
+	// Move each row in the video memory up by 1
+	for (y = 0; y < NUM_ROWS-1; y++) {
+		for (x = 0; x < NUM_COLS; x++) {
+			old_line = NUM_COLS*(y+1) + x;
+			new_line = NUM_COLS*y + x;
+			*(uint8_t *)(terms[current_term_executing].video_mem + (new_line << 1)) = *(uint8_t *)(terms[current_term_executing].video_mem + (old_line << 1));
+		}
+	}
+
+	// Clear the bottom line
+	for (x = 0; x < NUM_COLS; x++) {
+		new_line = NUM_COLS*(NUM_ROWS-1) + x;
+		*(uint8_t *)(terms[current_term_executing].video_mem + (new_line << 1)) = ' ';
+	}
+	set_screen_pos_term_exec(ROW_START, terms[current_term_executing].y_pos);
 }
 
 /* Standard printf().
@@ -64,7 +269,7 @@ printf(int8_t *format, ...)
 					int32_t alternate = 0;
 					buf++;
 
-format_char_switch:
+					format_char_switch:
 					/* Conversion specifiers */
 					switch(*buf) {
 						/* Print a literal '%' character */
@@ -158,13 +363,126 @@ format_char_switch:
 	return (buf - format);
 }
 
+/* Standard printf_terminal_running().
+ * Special print function to write to the currently executing terminal's video buffer
+ */
+int32_t
+printf_terminal_running(int8_t *format, ...)
+{
+	/* Pointer to the format string */
+	int8_t* buf = format;
+
+	/* Stack pointer for the other parameters */
+	int32_t* esp = (void *)&format;
+	esp++;
+
+	while(*buf != '\0') {
+		switch(*buf) {
+			case '%':
+				{
+					int32_t alternate = 0;
+					buf++;
+
+					format_char_switch:
+					/* Conversion specifiers */
+					switch(*buf) {
+						/* Print a literal '%' character */
+						case '%':
+							putc_terminal_running('%');
+							break;
+
+						/* Use alternate formatting */
+						case '#':
+							alternate = 1;
+							buf++;
+							/* Yes, I know gotos are bad.  This is the
+							 * most elegant and general way to do this,
+							 * IMHO. */
+							goto format_char_switch;
+
+						/* Print a number in hexadecimal form */
+						case 'x':
+							{
+								int8_t conv_buf[64];
+								if(alternate == 0) {
+									itoa(*((uint32_t *)esp), conv_buf, 16);
+									puts_terminal_running(conv_buf);
+								} else {
+									int32_t starting_index;
+									int32_t i;
+									itoa(*((uint32_t *)esp), &conv_buf[8], 16);
+									i = starting_index = strlen(&conv_buf[8]);
+									while(i < 8) {
+										conv_buf[i] = '0';
+										i++;
+									}
+									puts_terminal_running(&conv_buf[starting_index]);
+								}
+								esp++;
+							}
+							break;
+
+						/* Print a number in unsigned int form */
+						case 'u':
+							{
+								int8_t conv_buf[36];
+								itoa(*((uint32_t *)esp), conv_buf, 10);
+								puts_terminal_running(conv_buf);
+								esp++;
+							}
+							break;
+
+						/* Print a number in signed int form */
+						case 'd':
+							{
+								int8_t conv_buf[36];
+								int32_t value = *((int32_t *)esp);
+								if(value < 0) {
+									conv_buf[0] = '-';
+									itoa(-value, &conv_buf[1], 10);
+								} else {
+									itoa(value, conv_buf, 10);
+								}
+								puts_terminal_running(conv_buf);
+								esp++;
+							}
+							break;
+
+						/* Print a single character */
+						case 'c':
+							putc_terminal_running((uint8_t) *((int32_t *)esp) );
+							esp++;
+							break;
+
+						/* Print a NULL-terminated string */
+						case 's':
+							puts_terminal_running( *((int8_t **)esp) );
+							esp++;
+							break;
+
+						default:
+							break;
+					}
+
+				}
+				break;
+
+			default:
+				putc_terminal_running(*buf);
+				break;
+		}
+		buf++;
+	}
+
+	return (buf - format);
+}
+
 /*
 * int32_t puts(int8_t* s);
 *   Inputs: int_8* s = pointer to a string of characters
 *   Return Value: Number of bytes written
 *	Function: Output a string to the console
 */
-
 int32_t
 puts(int8_t* s)
 {
@@ -183,19 +501,61 @@ puts(int8_t* s)
 *   Return Value: void
 *	Function: Output a character to the console
 */
-
 void
 putc(uint8_t c)
 {
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x=0;
+        enter();
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        if (current_term_id == TERMINAL_ONE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM1;
+        if (current_term_id == TERMINAL_TWO)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM2;
+        if (current_term_id == TERMINAL_THREE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM3;
+        set_screen_pos(screen_x+1, screen_y);
+    }
+}
+
+/*
+* int32_t puts(int8_t* s);
+*   Inputs: int_8* s = pointer to a string of characters
+*   Return Value: Number of bytes written
+*	Function: Output a string to the console
+*/
+int32_t
+puts_terminal_running(int8_t* s)
+{
+	register int32_t index = 0;
+	while(s[index] != '\0') {
+		putc_terminal_running(s[index]);
+		index++;
+	}
+
+	return index;
+}
+
+/*
+* void putc(uint8_t c);
+*   Inputs: uint_8* c = character to print
+*   Return Value: void
+*	Function: Output a character to the console
+*/
+void
+putc_terminal_running(uint8_t c)
+{
+    if(c == '\n' || c == '\r') {
+        enter_term_exec();
+    } else {
+        *(uint8_t *)(terms[current_term_executing].video_mem + ((NUM_COLS*terms[current_term_executing].y_pos + terms[current_term_executing].x_pos) << 1)) = c;
+        if (current_term_id == TERMINAL_ONE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM1;
+        if (current_term_id == TERMINAL_TWO)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM2;
+        if (current_term_id == TERMINAL_THREE)
+        	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB_TERM3;
+        set_screen_pos_term_exec(terms[current_term_executing].x_pos+1, terms[current_term_executing].y_pos);
     }
 }
 
@@ -207,7 +567,6 @@ putc(uint8_t c)
 *   Return Value: number of bytes written
 *	Function: Convert a number to its ASCII representation, with base "radix"
 */
-
 int8_t*
 itoa(uint32_t value, int8_t* buf, int32_t radix)
 {
@@ -249,7 +608,6 @@ itoa(uint32_t value, int8_t* buf, int32_t radix)
 *   Return Value: reversed string
 *	Function: reverses a string s
 */
-
 int8_t*
 strrev(int8_t* s)
 {
@@ -274,7 +632,6 @@ strrev(int8_t* s)
 *   Return Value: length of string s
 *	Function: return length of string s
 */
-
 uint32_t
 strlen(const int8_t* s)
 {
@@ -293,7 +650,6 @@ strlen(const int8_t* s)
 *   Return Value: new string
 *	Function: set n consecutive bytes of pointer s to value c
 */
-
 void*
 memset(void* s, int32_t c, uint32_t n)
 {
@@ -341,8 +697,6 @@ memset(void* s, int32_t c, uint32_t n)
 *   Return Value: new string
 *	Function: set lower 16 bits of n consecutive memory locations of pointer s to value c
 */
-
-/* Optimized memset_word */
 void*
 memset_word(void* s, int32_t c, uint32_t n)
 {
@@ -368,7 +722,6 @@ memset_word(void* s, int32_t c, uint32_t n)
 *   Return Value: new string
 *	Function: set n consecutive memory locations of pointer s to value c
 */
-
 void*
 memset_dword(void* s, int32_t c, uint32_t n)
 {
@@ -394,7 +747,6 @@ memset_dword(void* s, int32_t c, uint32_t n)
 *   Return Value: pointer to dest
 *	Function: copy n bytes of src to dest
 */
-
 void*
 memcpy(void* dest, const void* src, uint32_t n)
 {
@@ -445,7 +797,6 @@ memcpy(void* dest, const void* src, uint32_t n)
 *   Return Value: pointer to dest
 *	Function: move n bytes of src to dest
 */
-
 /* Optimized memmove (used for overlapping memory areas) */
 void*
 memmove(void* dest, const void* src, uint32_t n)
@@ -483,11 +834,10 @@ memmove(void* dest, const void* src, uint32_t n)
 *					indicates the opposite.
 *	Function: compares string 1 and string 2 for equality
 */
-
 int32_t
 strncmp(const int8_t* s1, const int8_t* s2, uint32_t n)
 {
-	uint32_t i;
+	int32_t i;
 	for(i=0; i<n; i++) {
 		if( (s1[i] != s2[i]) ||
 				(s1[i] == '\0') /* || s2[i] == '\0' */ ) {
@@ -511,7 +861,6 @@ strncmp(const int8_t* s1, const int8_t* s2, uint32_t n)
 *   Return Value: pointer to dest
 *	Function: copy the source string into the destination string
 */
-
 int8_t*
 strcpy(int8_t* dest, const int8_t* src)
 {
@@ -533,11 +882,10 @@ strcpy(int8_t* dest, const int8_t* src)
 *   Return Value: pointer to dest
 *	Function: copy n bytes of the source string into the destination string
 */
-
 int8_t*
 strncpy(int8_t* dest, const int8_t* src, uint32_t n)
 {
-	uint32_t i=0;
+	int32_t i=0;
 	while(src[i] != '\0' && i < n) {
 		dest[i] = src[i];
 		i++;
@@ -552,12 +900,43 @@ strncpy(int8_t* dest, const int8_t* src, uint32_t n)
 }
 
 /*
+* void turn_screen_blue(void)
+*   Inputs: nothing
+*   Return Value: void
+*	Function: changes screen to blue
+*/
+void
+turn_screen_blue(void) {
+	
+	  int32_t i;
+    for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
+		*(uint8_t *)(video_mem + (i << 1) + 1) = BLUESCREEN;
+	}
+}
+
+/*
+* void print_cr3(void)
+* effects: prints the contents of the CR3 Register upon receiving an exception
+*/
+void print_cr3(void){
+	uint32_t cr3;
+	asm volatile(
+                 "movl %%cr3, %%eax;"
+				 "movl %%eax, %0;"
+                 :"=r"(cr3)                      /* no outputs */
+                 :						    /* no input */
+                 :"%eax"                /* clobbered register */
+                 );
+	printf("\n                  Fault Occurs at: %x\n", cr3);
+	return;
+}
+
+/*
 * void test_interrupts(void)
 *   Inputs: void
 *   Return Value: void
 *	Function: increments video memory. To be used to test rtc
 */
-
 void
 test_interrupts(void)
 {
@@ -565,26 +944,5 @@ test_interrupts(void)
 	for (i=0; i < NUM_ROWS*NUM_COLS; i++) {
 		video_mem[i<<1]++;
 	}
-}
-
-
-/*
-* void enter(void);
-*   Inputs: void
-*   Return Value: none
-*	Function: Moves to the next line on the screen
-*/
-void enter(void) {
-//	set_screen_pos(ROW_START, screen_y+1);
-}
-
-
-/*
-* void enter(void);
-*   Inputs: void
-*   Return Value: none
-*	Function: Moves to the next line on the screen
-*/
-void backspace(void) {
-//	set_screen_pos(ROW_START, screen_y+1);
+	send_eoi(1);
 }

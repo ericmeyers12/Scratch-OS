@@ -69,6 +69,12 @@ continue:
 	movw    %cx, %fs
 	movw    %cx, %gs
 
+	# Push the parameters that entry() expects (see kernel.c):
+	# eax = multiboot magic
+	# ebx = address of multiboot info struct
+	pushl   %ebx
+	pushl   %eax
+
 	# Enter the main kernel function
 	call kernel_main
 

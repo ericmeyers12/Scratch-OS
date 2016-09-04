@@ -10,6 +10,7 @@
 #define SYSCALL_VECTOR		0x80
 #define RTC_VECTOR			0x28
 #define KEYBOARD_VECTOR		0x21
+#define PIT_VECTOR 			0x20
 
 
 
@@ -47,6 +48,12 @@ int init_interrupts(void)
 
 	/* Keyboard Interrupt Handler - start in interrupts.S */
 	SET_IDT_ENTRY(idt[KEYBOARD_VECTOR], keyboard_handler);
+
+	/* PIT Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[PIT_VECTOR], pit_handler);
+
+	/* System Call Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[SYSCALL_VECTOR], system_call_handler);
 
 	/* Load the IDT. */
 	lidt(idt_desc_ptr);

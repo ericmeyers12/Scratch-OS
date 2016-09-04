@@ -1,47 +1,51 @@
-/*
- * terminal.h
- *
- *  Created on: Sep 2, 2016
- *      Author: Eric_Meyers
- */
-
-#ifndef TERMINAL_H_
-#define TERMINAL_H_
+#ifndef _TERMINAL_H
+#define _TERMINAL_H
 
 #include "types.h"
-#include "test.h"
-#include "lib.h"
-#include "x86_desc.h"
+#include "keyboard.h"
 
-/* Hardware text mode color constants. */
-enum vga_color {
-	COLOR_BLACK = 0,
-	COLOR_BLUE = 1,
-	COLOR_GREEN = 2,
-	COLOR_CYAN = 3,
-	COLOR_RED = 4,
-	COLOR_MAGENTA = 5,
-	COLOR_BROWN = 6,
-	COLOR_LIGHT_GREY = 7,
-	COLOR_DARK_GREY = 8,
-	COLOR_LIGHT_BLUE = 9,
-	COLOR_LIGHT_GREEN = 10,
-	COLOR_LIGHT_CYAN = 11,
-	COLOR_LIGHT_RED = 12,
-	COLOR_LIGHT_MAGENTA = 13,
-	COLOR_LIGHT_BROWN = 14,
-	COLOR_WHITE = 15,
-};
+#define TERM_COUNT  3
 
+/**TERMINAL STRUCT */
+typedef struct {
+    // terminal id (ie. 0, 1, 2)
+    uint8_t id;
+	
+	//active process number
+	int8_t active_process_number;
 
-uint16_t make_color(enum vga_color fg, enum vga_color bg);
+    // whether terminal has a process running
+    uint8_t running;
 
-uint16_t make_vgaentry(char c, uint8_t color);
+    // cursor position
+    uint32_t x_pos;
+    uint32_t y_pos;
 
-void terminal_initialize();
+    // key buffer for each terminal
+    volatile uint8_t key_buffer[KEY_BUFFER_SIZE+1];
+    volatile uint8_t key_buffer_idx;
 
-void terminal_setcolor(uint16_t color);
+    volatile uint8_t enter_flag;
 
+    //ptr to video memory for terminal
+    uint8_t *video_mem;
+} term_t;
 
+/* Global Variables */
+extern volatile uint8_t current_term_id;
+extern term_t terms[TERM_COUNT];
 
-#endif /* TERMINAL_H_ */
+/*Function Definitions */
+void init_terms(void);
+int32_t launch_term(uint8_t term_id);
+int32_t save_term_state(uint8_t term_id);
+int32_t restore_term_state(uint8_t term_id);
+int32_t switch_terminals(uint8_t old_term_id, uint8_t new_term_id);
+
+/*Terminal System Calls */
+int32_t terminal_open(const uint8_t* filename);
+int32_t terminal_close(int32_t fd);
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes);
+
+#endif /* _TERMINAL_H */

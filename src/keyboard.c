@@ -7,7 +7,7 @@
 #include "types.h"
 #include "i8259.h"
 #include "x86_desc.h"
-//#include "system_calls.h"
+#include "system_calls.h"
 #include "terminal.h"
 
 /*
@@ -136,19 +136,19 @@ keyboard_interrupt_handler() {
 		case F1_KEY:
 			if (alt_state == PRESSED) {
 				send_eoi(KEYBOARD_IRQ_LINE);
-				//launch_term(TERMINAL_ONE);
+				launch_term(TERMINAL_ONE);
 			}
 			break;
 		case F2_KEY:
 			if (alt_state == PRESSED) {
 				send_eoi(KEYBOARD_IRQ_LINE);
-				//launch_term(TERMINAL_TWO);
+				launch_term(TERMINAL_TWO);
 			}
 			break;
 		case F3_KEY:
 			if (alt_state == PRESSED) {
 				send_eoi(KEYBOARD_IRQ_LINE);
-				//launch_term(TERMINAL_THREE);
+				launch_term(TERMINAL_THREE);
 			}
 			break;
 		default:
@@ -188,7 +188,7 @@ handle_key_press(uint8_t scancode) {
 		switch(key) {
 			case 'l':
 				clear();
-				//set_screen_pos(0,0);
+				set_screen_pos(0,0);
 				break;
 			case 'c':
 				return;
@@ -242,7 +242,7 @@ clear_key_buffer() {
 */
 void
 handle_enter() {
-	//get_pcb_ptr_process(terms[current_term_id].active_process_number)->term->enter_flag = 1;
+	get_pcb_ptr_process(terms[current_term_id].active_process_number)->term->enter_flag = 1;
 	key_buffer[key_buffer_idx++] = '\n';
 	enter();
 }
