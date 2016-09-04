@@ -40,8 +40,21 @@ continue:
 	# Load GDT - Global Descriptor Table - defined in x86_desc.S
 	lgdt gdt_desc_ptr
 
+	# Load the IDT
+	push %eax
+	push %edx
+	push %ecx
+
+	call init_interrupts
+
+	pop %ecx
+	pop %edx
+	pop %eax
+
+
 	# Move ESP to top of stack (grows downwards on x86 systems).
 	mov $stack_top, %esp
+
 
 	# TODO: Initialize processor state here
 

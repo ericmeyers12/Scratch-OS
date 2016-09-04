@@ -1,6 +1,6 @@
 /* i8259.h - Defines used in interactions with the 8259 interrupt
  * controller
- * vim:ts=4 noexpandtab
+ * vim:ts=4:sw=4:et
  */
 
 #ifndef _I8259_H
@@ -8,9 +8,13 @@
 
 #include "types.h"
 
+
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT 0x20
 #define SLAVE_8259_PORT  0xA0
+
+/*Slave line sits at 2 -- Why? IDK, I guess it's just a design choice */
+#define SLAVE_IRQ_LINE 2
 
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning

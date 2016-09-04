@@ -142,4 +142,14 @@ do {                                    \
 			);                      \
 } while(0)
 
+/*
+* ASM Wrapper to show "blue screen" and print exception_name
+*/
+#define EXCEPTION_THROWN(exception_name,msg)  	\
+void exception_name() {							\
+	clear();									\
+	printf("%s\n",#msg); 						\
+	while(1);									\
+}
+
 #endif /* _LIB_H */

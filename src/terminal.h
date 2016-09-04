@@ -42,10 +42,6 @@ void terminal_initialize();
 
 void terminal_setcolor(uint16_t color);
 
-void terminal_putentryat(char c, uint8_t color, uint16_t x, uint16_t y);
 
-void terminal_putchar(char c);
-
-void terminal_writestring(const char* data);
 
 #endif /* TERMINAL_H_ */
