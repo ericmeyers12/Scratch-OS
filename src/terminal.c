@@ -2,14 +2,6 @@
 #include "test.h"
 #include "x86_desc.h"
 
-static const uint16_t VGA_WIDTH = 80;
-static const uint16_t VGA_HEIGHT = 25;
-
-uint16_t terminal_row;
-uint16_t terminal_column;
-uint16_t terminal_color;
-uint16_t* terminal_buffer;
-
 /* Hardware text mode color constants. */
 enum vga_color {
 	COLOR_BLACK = 0,
@@ -41,41 +33,3 @@ uint16_t make_vgaentry(char c, uint8_t color) {
 }
 
 
-
-void terminal_initialize() {
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
-	for (uint16_t y = 0; y < VGA_HEIGHT; y++) {
-		for (uint16_t x = 0; x < VGA_WIDTH; x++) {
-			const uint16_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = make_vgaentry(' ', terminal_color);
-		}
-	}
-}
-
-void terminal_setcolor(uint16_t color) {
-	terminal_color = color;
-}
-
-void terminal_putentryat(char c, uint8_t color, uint16_t x, uint16_t y) {
-	const uint16_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = make_vgaentry(c, color);
-}
-
-void terminal_putchar(char c) {
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT) {
-			terminal_row = 0;
-		}
-	}
-}
-
-void terminal_writestring(const char* data) {
-	uint16_t datalen = strlen(data);
-	for (uint16_t i = 0; i < datalen; i++)
-		terminal_putchar(data[i]);
-}

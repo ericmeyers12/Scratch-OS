@@ -66,7 +66,7 @@ enable_irq(uint32_t irq_num)
 	//the byte written to this port specifies which interrupts should be masked
 
 	/* Ret if irq_num is invalid */
- 	if ((irq_num > 15) || (irq_num < 0)) {
+ 	if ((irq_num > 15)) {
  		return;
  	}
 
@@ -74,8 +74,8 @@ enable_irq(uint32_t irq_num)
  	uint8_t mask = 0xFE;
 
 	/* MASTER BOUNDS = 0 -> 7*/
- 	if ((irq_num >= 0) && (irq_num <= 7)) {
- 		int b;
+ 	if (irq_num <= 7) {
+ 		uint8_t b;
  		for (b = 0; b < irq_num; b++) {
  			mask = (mask << 1) + 1;
  		}
@@ -88,7 +88,7 @@ enable_irq(uint32_t irq_num)
  	/* SLAVE BOUNDS = 8 -> 15 */
  	if ((irq_num >= 8) && (irq_num <= 15)) {
  		irq_num -= 8;
- 		int b;
+ 		uint8_t b;
  		for (b = 0; b < irq_num; b++) {
  			mask = (mask << 1) + 1;
  		}
@@ -110,7 +110,7 @@ void
 disable_irq(uint32_t irq_num)
 {
 	/* Ret if irq_num is invalid */
- 	if ((irq_num > 15) || (irq_num < 0)) {
+ 	if (irq_num > 15) {
  		return;
  	}
 
@@ -118,8 +118,8 @@ disable_irq(uint32_t irq_num)
  	uint8_t mask = 0x01;
 
 	/* MASTER BOUNDS = 0 -> 7 */
- 	if ((irq_num >= 0) && (irq_num <= 7)) {
- 		int b;
+ 	if (irq_num <= 7) {
+ 		uint8_t b;
  		for (b = 0; b < irq_num; b++) {
  			mask = (mask << 1);
  		}
@@ -131,7 +131,7 @@ disable_irq(uint32_t irq_num)
 	/* SLAVE BOUNDS = 8 -> 15 */
  	if ((irq_num >= 8) && (irq_num <= 15)) {
  		irq_num -= 8;
- 		int b;
+ 		uint8_t b;
  		for (b = 0; b < irq_num; b++) {
  			mask = (mask << 1);
  		}
@@ -152,7 +152,7 @@ void
 send_eoi(uint32_t irq_num)
 {
 	/* MASTER BOUNDS = 0 -> 7 */
-	if ((irq_num >= 0) && (irq_num <= 7)) {
+	if (irq_num <= 7) {
  		outb( EOI | irq_num, MASTER_8259_PORT2-1);
  	}
 

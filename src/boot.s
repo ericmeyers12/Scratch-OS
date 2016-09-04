@@ -51,12 +51,10 @@ continue:
 	pop %edx
 	pop %eax
 
-
 	# Move ESP to top of stack (grows downwards on x86 systems).
 	mov $stack_top, %esp
 
 
-	# TODO: Initialize processor state here
 
 	# Enter the main kernel function
 	call kernel_main

@@ -7,6 +7,8 @@
 #include "lib.h"
 #include "types.h"
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 /* To keep track of state of interrupt */
 volatile int rtc_interrupt_occurred = 0;
 
@@ -66,8 +68,8 @@ void rtc_interrupt_handler(void){
 *	output:
 *	effects:
 */
-int32_t
-rtc_open(const uint8_t * filename){
+int32_t rtc_open(const uint8_t * filename)
+{
 
 	/* Set RTC Frequency to 2 Hz */
     rtc_set_freq(2);
