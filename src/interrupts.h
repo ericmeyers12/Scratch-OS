@@ -12,6 +12,9 @@
 /* Clock interrupt asm wrapper */
 extern void rtc_handler();
 
+/* Keyboard interrupt asm wrapper */
+extern void keyboard_handler();
+
 
 
 #endif /* SRC_INTERRUPTS_H_ */

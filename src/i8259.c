@@ -20,8 +20,7 @@ uint8_t slave_mask = 0xFF; /* IRQs 8-15 */
 *	output: 0 upon success
 *	effects: sends ICWs (initialization control words) to PIC ports to initialize the PIC
 */
-void
-i8259_init(void)
+void i8259_init(void)
 {
 	// possible TODO? save masks at the start and restore them at the end?
 
@@ -58,8 +57,7 @@ i8259_init(void)
 *	effects: unmasks the IRQ line specified by irq_num by simply
 * 			 writing an updated mask to the data port
 */
-void
-enable_irq(uint32_t irq_num)
+void enable_irq(uint32_t irq_num)
 {
 	// Masking and unmasking of interrupts on an 8259A outside of the
 	//interrupt sequence requires only a single write to the second port and
@@ -106,8 +104,7 @@ enable_irq(uint32_t irq_num)
 *	effects: masks the IRQ line specified by irq_num by simply
 * 			 writing an updated mask to the data port
 */
-void
-disable_irq(uint32_t irq_num)
+void disable_irq(uint32_t irq_num)
 {
 	/* Ret if irq_num is invalid */
  	if (irq_num > 15) {
@@ -148,8 +145,7 @@ disable_irq(uint32_t irq_num)
 *	effects: ORs the EOI (end of interrupt) byte with the irq line number and
 *			 sends it out to the PIC
 */
-void
-send_eoi(uint32_t irq_num)
+void send_eoi(uint32_t irq_num)
 {
 	/* MASTER BOUNDS = 0 -> 7 */
 	if (irq_num <= 7) {

@@ -1,3 +1,10 @@
+# boot.S - start point for the kernel after GRUB gives us control
+
+#define ASM     1
+
+#include "multiboot.h"
+#include "x86_desc.h"
+
 # Declare constants for the multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries
 .set MEMINFO,  1<<1             # provide memory map
@@ -54,7 +61,13 @@ continue:
 	# Move ESP to top of stack (grows downwards on x86 systems).
 	mov $stack_top, %esp
 
-
+	# Set up the rest of the segment selector registers
+	movw    $KERNEL_DS, %cx
+	movw    %cx, %ss
+	movw    %cx, %ds
+	movw    %cx, %es
+	movw    %cx, %fs
+	movw    %cx, %gs
 
 	# Enter the main kernel function
 	call kernel_main

@@ -15,6 +15,8 @@ name:										;\
 	popal									;\
 	iret									;\
 
+# keyboard_handler: interrupt handler for keyboard interrupts
+HANDLER(keyboard_handler, keyboard_interrupt_handler);
 
 # clock_handler: interrupt handler for rtc interrupts
 HANDLER(rtc_handler, rtc_interrupt_handler);

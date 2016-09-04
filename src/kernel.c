@@ -2,6 +2,7 @@
 #include "i8259.h"
 #include "lib.h"
 #include "rtc.h"
+#include "keyboard.h"
 
 void kernel_main() {
 	/* Initialize PIC*/
@@ -12,6 +13,9 @@ void kernel_main() {
 
 	/*Initialize Real Time Clock*/
 	init_rtc();
+
+	/* Initialize Keyboard*/
+	init_keyboard();
 
 	/* Test Function */
 	(void)test(1);

@@ -566,3 +566,25 @@ test_interrupts(void)
 		video_mem[i<<1]++;
 	}
 }
+
+
+/*
+* void enter(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Moves to the next line on the screen
+*/
+void enter(void) {
+//	set_screen_pos(ROW_START, screen_y+1);
+}
+
+
+/*
+* void enter(void);
+*   Inputs: void
+*   Return Value: none
+*	Function: Moves to the next line on the screen
+*/
+void backspace(void) {
+//	set_screen_pos(ROW_START, screen_y+1);
+}

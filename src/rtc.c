@@ -22,8 +22,7 @@ volatile int counter = 0;
 *   outputs: none
 *   effects: enables IRQ Line on PIC, sends appropriate values to RTC (according to DataSheet)
 */
-void
-init_rtc(void){
+void init_rtc(void){
 	/* Select Control Register A, and set 0x80 to disable NMI */
  	outb(RTC_REGISTER_A, RTC_PORT);
 
@@ -55,7 +54,7 @@ void rtc_interrupt_handler(void){
 	inb(CMOS_PORT); 		//throw away contents
 	counter++;
 
-	printf("%d", counter);
+	//printf("count: %d\n", counter);
 
 	send_eoi(RTC_IRQ_LINE);	//send the end of interrupt
 }
@@ -86,8 +85,7 @@ int32_t rtc_open(const uint8_t * filename)
  *	output: returns 0 upon success
  *	effects:
  */
-int32_t
-rtc_read(int32_t fd, void* buf, int32_t nbytes){
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
 	/* Disable interrupts and spin until interrupt received */
 	while (!rtc_interrupt_occurred){
 		/* SPIN */
@@ -108,8 +106,7 @@ rtc_read(int32_t fd, void* buf, int32_t nbytes){
  *	output:
  *	effects:
  */
-int32_t
-rtc_write(int32_t fd, const void* buf, int32_t nbytes){
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
     /* Local variables. */
 	int32_t freq;
 
@@ -133,8 +130,7 @@ rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 *   output: none
 *   effects: sets RTC Frequency
 */
-void
-rtc_set_freq(int32_t freq){
+void rtc_set_freq(int32_t freq){
     /* Local variables. */
     char rate;
 
@@ -168,8 +164,7 @@ rtc_set_freq(int32_t freq){
  *	output: returns 0 upon success
  *	effects:
  */
-int32_t
-rtc_close(int32_t fd){
+int32_t rtc_close(int32_t fd){
 
 	 /* Reset RTC Frequency to 2 Hz */
     rtc_set_freq(2);
