@@ -4,14 +4,14 @@
 # Will compile all *.c and *.S files in the current directory.
 
 
-# FLAGS - to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -g -std=gnu99 -O0 -Wall -Wextra -fno-builtin -fno-stack-protector  -nostdlib
+# Flags to use when compiling, preprocessing, assembling, and linking
+CFLAGS 	+= -g -Wall -fno-builtin -fno-stack-protector -nostdlib
 ASFLAGS += -g
-LDFLAGS += -g -O0 -nostdlib
+LDFLAGS += -nostdlib -static
 
-# COMPILERS - Using i686 cross-compiler
-CC=i686-elf-gcc
+# CROSS-COMPILERS - i686-elf to
 AS=i686-elf-as
+CC=i686-elf-gcc
 LD=i686-elf-ld
 
 # DIRECTORIES - change these to set the proper directories where each files should be
@@ -20,63 +20,35 @@ OBJDIR=obj
 BINDIR=bin
 ISODIR=isodir
 
-# SOURCE - this generates the list of source files
-C-SRC := $(wildcard $(SRCDIR)/*.c)
-AS-SRC := $(wildcard $(SRCDIR)/*.S)
-SRCS := $(C-SRC) $(AS-SRC)
 
-C-OBJS := ${C-SRC:.c=.o}
-AS-OBJS := ${AS-SRC:.S=.o}
-OBJS := ${C-OBJS} ${AS-OBJS}
+# This generates the list of source files
+SRC =  $(wildcard $(SRCDIR)/*.S) $(wildcard $(SRCDIR)/*.c)
 
-# ALL - "make all" compiles all source files into an iso to boot using ./test
-# -T = use linking script
-# i686-elf-as boot.s -o boot.o
-# i686-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
-# i686-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o -lgcc
+# This generates the list of .o files. The order matters, boot.o must be first
+OBJS  = $(SRCDIR)/boot.o
+OBJS += $(filter-out $(SRCDIR)/boot.o,$(patsubst $(SRCDIR)/%.S,$(SRCDIR)/%.o,$(filter $(SRCDIR)/%.S,$(SRC))))
+OBJS += $(patsubst $(SRCDIR)/%.c,$(SRCDIR)/%.o,$(filter $(SRCDIR)/%.c,$(SRC)))
 
-all: $(OBJS)
+
+bootimg: Makefile $(OBJS)
 	@echo "\nLinking...\n"
-	$(CC) -T src/config/linker.ld -o $(BINDIR)/kernel.elf $(LDFLAGS) $(OBJS)
-	@echo "\nDone Linking...\n"
-	cp $(BINDIR)/kernel.elf isodir/boot/kernel.elf
-	@echo "Cleaning Up..."
+	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
+	@echo "\nCombining filesys_img, bootimg, and mp3.img"
+	cp ./bootimg ../Ubuntu-Shared
+	cp ./mp3.img ../Ubuntu-Shared
+	@echo "\nNow run the debug.sh script from a linux terminal\n"
+	@echo "\nCleaning up files"
 	cp $(SRCDIR)/*.o $(SRCDIR)/$(OBJDIR)
 	rm -f $(SRCDIR)/*.o
-	@echo "\nCreating ISO...\n"
-	grub-mkrescue -o scratch-os.iso $(ISODIR)
-	@echo "\nISO created. Creating GDB files...\n"
-	i686-elf-objcopy --only-keep-debug $(BINDIR)/kernel.elf kernel.sym
-	i686-elf-objcopy --strip-debug $(BINDIR)/kernel.elf
-	@echo "\nDebugging files created.\n"
-	@echo "Done. Boot with QEMU.\n"
 
-
-%.o : %.s
-	$(AS) $*.S -o $*.o $(ASFLAGS)
-	@echo ""
-	@echo Compiling $@ from <$...
-	@echo ""
-
-%.o : %.c
-	$(CC) -c $*.c -o $*.o $(CFLAGS)
-	@echo ""
-	@echo Compiling $@ from $<...
-	@echo ""
-
-
-# DEPENDENCIES - "make dep" compiles all dependencies into single makefile.dep file
 dep: Makefile.dep
 
 Makefile.dep: $(SRC)
-	$(CC) -MM $(CFLAGS) $(SRCS) > $@
-	@echo "Dependencies file created..."
+	$(CC) -MM $(CFLAGS) $(SRC) > $@
 
-
-# CLEAN - "make clean" - removes all object files and restores settings on make
 .PHONY: clean
 clean:
-	rm -f $(SRCDIR)/$(OBJDIR)/*.o Makefile.dep scratch-os.iso kernel.sym
+	rm -f *.o Makefile.dep bootimg
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)

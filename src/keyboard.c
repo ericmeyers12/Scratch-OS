@@ -1,5 +1,5 @@
 /*
-*	keyboard.c - handles interrupts received by keyboard and allows
+*	keyboard.c - handles interrupts received by keyboard and allows 
 *				 interfacing between keyboard and processor
 */
 #include "keyboard.h"
@@ -47,22 +47,22 @@ static uint8_t scancode_map[KEY_MODES][KEY_COUNT] = {
 	// no caps / no shift
 	{'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\0', '\0',
 	 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\0', '\0', 'a', 's',
-	 'd', 'f', 'g', 'h', 'j', 'k', 'l' , ';', '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v',
+	 'd', 'f', 'g', 'h', 'j', 'k', 'l' , ';', '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v', 
 	 'b', 'n', 'm',',', '.', '/', '\0', '*', '\0', ' ', '\0'},
 	// no caps / shift
 	{'\0', '\0', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\0', '\0',
 	 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\0', '\0', 'A', 'S',
-	 'D', 'F', 'G', 'H', 'J', 'K', 'L' , ':', '"', '~', '\0', '|', 'Z', 'X', 'C', 'V',
+	 'D', 'F', 'G', 'H', 'J', 'K', 'L' , ':', '"', '~', '\0', '|', 'Z', 'X', 'C', 'V', 
 	 'B', 'N', 'M', '<', '>', '?', '\0', '*', '\0', ' ', '\0'},
 	// caps / no shift
 	{'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\0', '\0',
 	 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\0', '\0', 'A', 'S',
-	 'D', 'F', 'G', 'H', 'J', 'K', 'L' , ';', '\'', '`', '\0', '\\', 'Z', 'X', 'C', 'V',
+	 'D', 'F', 'G', 'H', 'J', 'K', 'L' , ';', '\'', '`', '\0', '\\', 'Z', 'X', 'C', 'V', 
 	 'B', 'N', 'M', ',', '.', '/', '\0', '*', '\0', ' ', '\0'},
 	// caps / shift
 	{'\0', '\0', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\0', '\0',
 	 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '{', '}', '\0', '\0', 'a', 's',
-	 'd', 'f', 'g', 'h', 'j', 'k', 'l' , ':', '"', '~', '\0', '\\', 'z', 'x', 'c', 'v',
+	 'd', 'f', 'g', 'h', 'j', 'k', 'l' , ':', '"', '~', '\0', '\\', 'z', 'x', 'c', 'v', 
 	 'b', 'n', 'm', '<', '>', '?', '\0', '*', '\0', ' ', '\0'}
 };
 
@@ -75,7 +75,7 @@ static uint8_t scancode_map[KEY_MODES][KEY_COUNT] = {
 *	outputs:	nothing
 *	effects:	enables line 1 on the master PIC
 */
-void
+void 
 init_keyboard(void) {
 	enable_irq(KEYBOARD_IRQ_LINE);
 }
@@ -83,14 +83,14 @@ init_keyboard(void) {
 
 /*
 *	Function: init_keyboard_handler()
-*	Description: This function reads from the appropriate port on the keyboard to
-*				receive the interrupts generated, parses this information, and
+*	Description: This function reads from the appropriate port on the keyboard to 
+*				receive the interrupts generated, parses this information, and 
 *				displays the associated character on the screen.
 *	inputs:	 nothing
 *	outputs: nothing
 *	effects: prints character to screen from scancode_map
 */
-void
+void 
 keyboard_interrupt_handler() {
 	cli();
 	uint8_t c = 0;
@@ -155,7 +155,7 @@ keyboard_interrupt_handler() {
 			handle_key_press(c);
 			break;
 	}
-
+	
 	send_eoi(KEYBOARD_IRQ_LINE);
 	sti();
 }
@@ -240,7 +240,7 @@ clear_key_buffer() {
 *	outputs: none
 *	effects: sets enter flag
 */
-void
+void 
 handle_enter() {
 	get_pcb_ptr_process(terms[current_term_id].active_process_number)->term->enter_flag = 1;
 	key_buffer[key_buffer_idx++] = '\n';
@@ -254,7 +254,7 @@ handle_enter() {
 *	outputs: none
 *	effects: modifies key buffer
 */
-void
+void 
 handle_backspace() {
 	if (key_buffer_idx > 0) {
 		backspace();

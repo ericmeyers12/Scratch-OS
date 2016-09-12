@@ -95,12 +95,12 @@ static inline uint32_t inb(port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
-			inb   (%w1), %b0"
+			inb   (%w1), %b0" 
 			: "=a"(val)
 			: "d"(port)
 			: "memory" );
 	return val;
-}
+} 
 
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended
@@ -128,7 +128,6 @@ static inline uint32_t inl(port)
 	return val;
 }
 
-
 /* Writes a byte to a port */
 #define outb(data, port)                \
 do {                                    \
@@ -137,7 +136,6 @@ do {                                    \
 			: "d" (port), "a" (data)    \
 			: "memory", "cc" );         \
 } while(0)
-
 
 /* Writes two bytes to two consecutive ports */
 #define outw(data, port)                \
@@ -148,7 +146,6 @@ do {                                    \
 			: "memory", "cc" );         \
 } while(0)
 
-
 /* Writes four bytes to four consecutive ports */
 #define outl(data, port)                \
 do {                                    \
@@ -157,7 +154,6 @@ do {                                    \
 			: "d" (port), "a" (data)    \
 			: "memory", "cc" );         \
 } while(0)
-
 
 /* Clear interrupt flag - disables interrupts on this processor */
 #define cli()                           \
@@ -207,13 +203,19 @@ do {                                    \
 } while(0)
 
 
-
-
+	
+	
 /*
-* ASM Wrapper
-*/
+* ASM Wrapper to show "blue screen" and print exception_name
+*/	
 #define EXCEPTION_THROWN(exception_name,msg)  	\
 void exception_name() {							\
+	keyboard_enabled = 0;						\
+	clear();									\
+	print_cr3();								\
+	set_screen_pos(0,0);						\
+	printf("%s\n",#msg); 						\
+	turn_screen_blue();							\
 	while(1);									\
 }										\
 

@@ -12,6 +12,30 @@
 #define KEYBOARD_VECTOR		0x21
 #define PIT_VECTOR 			0x20
 
+/* Exceptions sent to the exception creator macro.
+*  IDT Table initialized using reference to:
+*		http://phrack.org/issues/59/4.html
+*	as well on pg. 145/838 in IA-32 Software Dev Manual
+*/
+EXCEPTION_THROWN(DIVIDE_EXCEPTION,"Divide Error");
+EXCEPTION_THROWN(DEBUG_EXCEPTION,"Debug Exception");
+EXCEPTION_THROWN(NMI_EXCEPTION,"Non Maskable Interrupt Exception");
+EXCEPTION_THROWN(INT3_EXCEPTION,"Breakpoint Exception");
+EXCEPTION_THROWN(OVERFLOW_EXCEPTION,"Overflow Exception");
+EXCEPTION_THROWN(BOUNDS_EXCEPTION,"BOUND Range Exceeded Exception");
+EXCEPTION_THROWN(INVALID_OPCODE_EXCEPTION,"Invalid Opcode Exception");
+EXCEPTION_THROWN(DEVICE_NOT_AVAILABLE_EXCEPTION,"Device Not Available Exception");
+EXCEPTION_THROWN(DOUBLE_FAULT_EXCEPTION,"Double Fault Exception");
+EXCEPTION_THROWN(COPROCESSOR_SEGMENT_OVERRUN_EXCEPTION,"Coprocessor Segment Exception");
+EXCEPTION_THROWN(TSS_EXCEPTION,"Invalid TSS Exception");
+EXCEPTION_THROWN(SEG_NOT_PRESENT_EXCEPTION,"Segment Not Present");
+EXCEPTION_THROWN(STACK_SEGMENT_EXCEPTION,"Stack Fault Exception");
+EXCEPTION_THROWN(GENERAL_PROTECTION_EXCEPTION,"General Protection Exception");
+EXCEPTION_THROWN(PAGE_FAULT_EXCEPTION,"Page Fault Exception");
+/**15 - RESERVED BY INTEL (?) */
+EXCEPTION_THROWN(FLOAT_EXCEPTION,"Floating Point Exception");
+EXCEPTION_THROWN(ALIGN_CHECK_EXCEPTION,"Alignment Check Exception");
+EXCEPTION_THROWN(MACHINE_CHECK_EXCEPTION,"Machine Check Exception");
 
 
 /* Function: general_interruption()
@@ -21,13 +45,13 @@
 *  ouputs: none
 *  effects: masks interrupts, prints to screen, unmasks interrupts
 */
-void general_interruption(void)
+void 
+general_interruption(void) 
 {
 	cli();
 	printf("Undefined interruption!");
 	sti();
 }
-
 
 /*	Function: init_interrupts()
 *	Description: intializes the interrupts upon boot
@@ -35,47 +59,14 @@ void general_interruption(void)
 *	output: 0 if successful, 1 if unsuccessful
 	effects: sets the IDT entries to be the associated exceptions
 */
-int init_interrupts(void)
+int 
+init_interrupts(void)
 {
-	/* Set all appropriate memory bits in IDT */
-	setup_idt();
-
-	/*Initialize all exception handlers*/
-	setup_exception_handlers();
-
-	/* RTC Interrupt Handler - start in interrupts.S */
-	SET_IDT_ENTRY(idt[RTC_VECTOR], rtc_handler);
-
-	/* Keyboard Interrupt Handler - start in interrupts.S */
-	SET_IDT_ENTRY(idt[KEYBOARD_VECTOR], keyboard_handler);
-
-	/* PIT Interrupt Handler - start in interrupts.S */
-	SET_IDT_ENTRY(idt[PIT_VECTOR], pit_handler);
-
-	/* System Call Interrupt Handler - start in interrupts.S */
-	SET_IDT_ENTRY(idt[SYSCALL_VECTOR], system_call_handler);
-
-	/* Load the IDT. */
-	lidt(idt_desc_ptr);
-
-	return 0;
- }
-
-
-/*	Function: setup_idt()
-*	Description: intializes all exceptions in IDT
-*	input: none
-*	output: none
-	effects: intializes the IDT with exceptions
-*/
-void setup_idt(void)
-{
-	/* Initialize index */
+   /* Initialize index */
    int i = 0;
-
    /* Loop through IDT Vector table (according to NUM_VEC) and
    *  define the specific interrupt vector to the according exception */
-   for(i = 0; i < NUM_VEC; i++) {
+   for(; i < NUM_VEC; i++) {
     	/* SET INTERRPUT VECTOR AS FOLLOWS:
 		*
 		* typedef union idt_desc_t {
@@ -101,8 +92,7 @@ void setup_idt(void)
 		idt[i].present = 0x1;
     	idt[i].dpl = 0x0;
   		idt[i].size = 0x1;
-
-  		/* General Interrupt = R0R1R2R3R4 = 01100 (32 -> 256)*/
+		//General Interrupt = R0R1R2R3R4 = 01100 (32 -> 256)
 		idt[i].reserved0 = 0x0;
   		idt[i].reserved1 = 0x1;
   		idt[i].reserved2 = 0x1;
@@ -110,52 +100,20 @@ void setup_idt(void)
   		idt[i].reserved4 = 0x0;
   		idt[i].seg_selector = KERNEL_CS;
 
-		/* General Exception = R0R1R2R3R4 = 01110 (0->32) */
+		//General Exception = R0R1R2R3R4 = 01110 (0->32)
   		if(i < 32){
     		idt[i].reserved3 = 0x1;
   		}
 
-		/*System Call = Same as Exception R0R1R2R3R4 = 01110 (0->32) but from user level */
+		//System Call = Same as Exception R0R1R2R3R4 = 01110 (0->32)
+		// However, this will come from DPL = 3 (User)
   		if(SYSCALL_VECTOR == i)
 		{
 			idt[i].reserved3 = 1;
 			idt[i].dpl = 0x3;
 		}
-
+    		
 	}
-}
-
-
-/*	Function: setup_exception_handlers()
-*	Description: intializes all exceptions in IDT
-*	input: none
-*	output: none
-	effects: intializes the IDT with exceptions
-*/
-void setup_exception_handlers(void)
-{
-	/* Exceptions sent to the exception creator macro.
-	*  IDT Table initialized using reference to:
-	*		http://phrack.org/issues/59/4.html*/
-	EXCEPTION_THROWN(DIVIDE_EXCEPTION,"Divide Error");
-	EXCEPTION_THROWN(DEBUG_EXCEPTION,"Debug Exception");
-	EXCEPTION_THROWN(NMI_EXCEPTION,"Non Maskable Interrupt Exception");
-	EXCEPTION_THROWN(INT3_EXCEPTION,"Breakpoint Exception");
-	EXCEPTION_THROWN(OVERFLOW_EXCEPTION,"Overflow Exception");
-	EXCEPTION_THROWN(BOUNDS_EXCEPTION,"BOUND Range Exceeded Exception");
-	EXCEPTION_THROWN(INVALID_OPCODE_EXCEPTION,"Invalid Opcode Exception");
-	EXCEPTION_THROWN(DEVICE_NOT_AVAILABLE_EXCEPTION,"Device Not Available Exception");
-	EXCEPTION_THROWN(DOUBLE_FAULT_EXCEPTION,"Double Fault Exception");
-	EXCEPTION_THROWN(COPROCESSOR_SEGMENT_OVERRUN_EXCEPTION,"Co-processor Segment Exception");
-	EXCEPTION_THROWN(TSS_EXCEPTION,"Invalid TSS Exception");
-	EXCEPTION_THROWN(SEG_NOT_PRESENT_EXCEPTION,"Segment Not Present");
-	EXCEPTION_THROWN(STACK_SEGMENT_EXCEPTION,"Stack Fault Exception");
-	EXCEPTION_THROWN(GENERAL_PROTECTION_EXCEPTION,"General Protection Exception");
-	EXCEPTION_THROWN(PAGE_FAULT_EXCEPTION,"Page Fault Exception");
-	EXCEPTION_THROWN(FLOAT_EXCEPTION,"Floating Point Exception");
-	EXCEPTION_THROWN(ALIGN_CHECK_EXCEPTION,"Alignment Check Exception");
-	EXCEPTION_THROWN(MACHINE_CHECK_EXCEPTION,"Machine Check Exception");
-
 
 	/* Define INT 0x00 through INT 0x18. Route them to respective handlers. */
 	SET_IDT_ENTRY(idt[0], DIVIDE_EXCEPTION);
@@ -173,7 +131,23 @@ void setup_exception_handlers(void)
 	SET_IDT_ENTRY(idt[12], STACK_SEGMENT_EXCEPTION);
 	SET_IDT_ENTRY(idt[13], GENERAL_PROTECTION_EXCEPTION);
 	SET_IDT_ENTRY(idt[14], PAGE_FAULT_EXCEPTION);
+	//Interrupt Vector #15 - RESERVED BY INTEL
 	SET_IDT_ENTRY(idt[16], FLOAT_EXCEPTION);
 	SET_IDT_ENTRY(idt[17], ALIGN_CHECK_EXCEPTION);
 	SET_IDT_ENTRY(idt[18], MACHINE_CHECK_EXCEPTION);
-}
+	
+	/*RTC Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[RTC_VECTOR], rtc_handler);
+
+	/*Keyboard Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[KEYBOARD_VECTOR], keyboard_handler);
+	
+	/*Keyboard Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[PIT_VECTOR], pit_handler);
+
+	/*System Call Interrupt Handler - start in interrupts.S */
+	SET_IDT_ENTRY(idt[SYSCALL_VECTOR], system_call_handler);
+   // Load the IDT.
+   lidt(idt_desc_ptr);
+   return 0;
+ }

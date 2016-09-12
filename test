@@ -1,6 +1,0 @@
-#!/bin/bash
-
-echo "Opening qemu-system-1386.."
-echo " "
-
-qemu-system-i386 -cdrom "$1" -name test

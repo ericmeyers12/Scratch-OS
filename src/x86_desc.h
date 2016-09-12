@@ -1,4 +1,4 @@
-/* x86_desc.h - Defines for various x86 descriptors, descriptor tables,
+/* x86_desc.h - Defines for various x86 descriptors, descriptor tables, 
  * and selectors
  * vim:ts=4 noexpandtab
  */
@@ -162,7 +162,7 @@ typedef union idt_desc_t {
 	} __attribute__((packed));
 } idt_desc_t;
 
-/* The IDT itself (declared in x86_desc.S) */
+/* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;

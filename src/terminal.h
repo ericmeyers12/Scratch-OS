@@ -6,7 +6,7 @@
 
 #define TERM_COUNT  3
 
-/**TERMINAL STRUCT */
+/**TERMINAL STRUCT **/
 typedef struct {
     // terminal id (ie. 0, 1, 2)
     uint8_t id;

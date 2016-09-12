@@ -6,7 +6,7 @@
 
 #include "types.h"
 
-/* This defines both the index and data port on the RTC
+/* This defines both the index and data port on the RTC 
 *	 Names are given according to both RTC Data Sheet
 *    and names taken from OSDev
 */
@@ -15,10 +15,10 @@
 
 
 /* Registers on the RTC */
-#define RTC_REGISTER_A	0x0A
-#define	RTC_REGISTER_B	0x0B
-#define	RTC_REGISTER_C	0x0C
-#define	RTC_REGISTER_D	0x0D
+#define RTC_REGISTER_A	0x0A 
+#define	RTC_REGISTER_B	0x0B 
+#define	RTC_REGISTER_C	0x0C 
+#define	RTC_REGISTER_D	0x0D 
 
 
 /* PIC Interrupt Line */

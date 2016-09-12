@@ -15,7 +15,7 @@ name:										;\
 	popfl									;\
 	popal									;\
 	iret									;\
-
+	
 # keyboard_handler: interrupt handler for keyboard interrupts
 HANDLER(keyboard_handler, keyboard_interrupt_handler);
 # clock_handler: interrupt handler for rtc interrupts
@@ -26,7 +26,7 @@ HANDLER(pit_handler, PIT_interrupt_and_schedule);
 #-------------------------------------------------------------------#
 
 #System Call Handler
-#Save Registers -> Push Arguments -> Check Validity ->
+#Save Registers -> Push Arguments -> Check Validity -> 
 #     Load Call -> Make Call -> Restore Registers -> Interrupt Return.
 
 #SYSTEM CALL JUMP TABLE - ONLY 1 - 6 ("execute" -> "close") FOR CHECKPT 2
@@ -60,7 +60,7 @@ system_call_handler:
   	jl invalid
   	cmpl $8, %eax
   	jg invalid
-
+	
 	# Call the correct system call according to the jumptable
 	sti
   	call *system_call_jump_table(,%eax,4)

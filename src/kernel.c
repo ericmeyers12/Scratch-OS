@@ -1,32 +1,3 @@
-//#include "terminal.h"
-//#include "i8259.h"
-//#include "lib.h"
-//#include "rtc.h"
-//#include "keyboard.h"
-//
-//void kernel_main() {
-//	/* Initialize PIC*/
-//	i8259_init();
-//
-//	/* Allow for interrupts now*/
-//	sti();
-//
-//	/*Initialize Real Time Clock*/
-//	init_rtc();
-//
-//	/* Initialize Keyboard*/
-//	init_keyboard();
-//
-//	/* Test Function */
-//	(void)test(1);
-//
-//	/* Testing printf*/
-//	(void)printf("this is a test:%d\nhello\nERIC'S O.S.", 1);
-//
-//	/* Spin (nicely, so we don't chew up cycles) */
-//		asm volatile(".1: hlt; jmp .1;");
-//
-//}
 /* kernel.c - the C part of the kernel
  * vim:ts=4 noexpandtab
  */
@@ -55,7 +26,7 @@
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
-kernel_main (unsigned long magic, unsigned long addr)
+entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
 
@@ -184,23 +155,24 @@ kernel_main (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
-
+    
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */\
 
 	/* Initialize the PIC */
 	i8259_init();
-
+	
 	/* Disable interrupts - previous cli() called in boot.S */
 	sti();
 
+	
 	/* Initializing Keyboard*/
 	init_keyboard();
 
 	/* Initialize the RTC */
 	init_rtc();
-
+	
 	/* Turn on paging */
     init_paging();
 
