@@ -1,0 +1,5 @@
+default=1
+timeout=5
+title Erics Scratch-OS
+	kernel /bootimg
+	modulenounzip /filesys_img
