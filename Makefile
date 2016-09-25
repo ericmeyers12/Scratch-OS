@@ -5,8 +5,8 @@
 
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -g -Wall -fno-builtin -fno-stack-protector -nostdlib
-ASFLAGS += -g
+CFLAGS 	+= -g -Wall -fno-builtin -fno-stack-protector -nostdlib -O0
+ASFLAGS += -g -O0
 LDFLAGS += -nostdlib -static
 
 # CROSS-COMPILERS - i686-elf to
@@ -36,10 +36,10 @@ bootimg: Makefile $(OBJS)
 	@echo "\nCombining filesys_img, bootimg, and mp3.img"
 	cp ./bootimg ../Ubuntu-Shared
 	cp ./mp3.img ../Ubuntu-Shared
-	@echo "\nNow run the debug.sh script from a linux terminal\n"
 	@echo "\nCleaning up files"
 	cp $(SRCDIR)/*.o $(SRCDIR)/$(OBJDIR)
 	rm -f $(SRCDIR)/*.o
+	@echo "\nNow run the debug.sh script from a linux terminal\n"
 
 dep: Makefile.dep
 

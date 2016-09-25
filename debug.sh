@@ -1,23 +1,25 @@
 #!/bin/sh
 
-if [ -d /mnt/tmpmp3 ]; then
-rm -rf /mnt/tmpmp3
+if [ -d /mnt/tmpdir ]; then
+rm -rf /mnt/tmpdir
 fi
 
-if [ -d /tmp/mp3 ]; then
-rm -rf /tmp/mp3
+if [ -d /tmp/dir ]; then
+rm -rf /tmp/dir
 fi
 
-mkdir /mnt/tmpmp3
-mkdir /tmp/mp3
-cp ./bootimg /tmp/mp3/
-cp ./filesys_img /tmp/mp3/
-cp ./mp3.img /tmp/mp3/
-mount -o loop,offset=32256 /tmp/mp3/mp3.img /mnt/tmpmp3
-cp -f /tmp/mp3/bootimg /mnt/tmpmp3/
-cp -f /tmp/mp3/filesys_img /mnt/tmpmp3/
-umount /mnt/tmpmp3
-cp -f /tmp/mp3/mp3.img ./
-rm -rf /tmp/mp3
-rmdir /mnt/tmpmp3
+mkdir /mnt/tmpdir
+mkdir /tmp/dir
+cp ./bootimg /tmp/dir/
+cp ./filesys_img /tmp/dir/
+cp ./scratch-os.img /tmp/dir/
+mount -o loop,offset=1048576 /tmp/dir/scratch-os.img /mnt/tmpdir
+cp -f /tmp/dir/bootimg /mnt/tmpdir/
+cp -f /tmp/dir/filesys_img /mnt/tmpdir/
 
+#
+
+#umount /mnt/tmpmp3
+#cp -f /tmp/mp3/mp3.img ./
+#rm -rf /tmp/mp3
+#rmdir /mnt/tmpmp3
